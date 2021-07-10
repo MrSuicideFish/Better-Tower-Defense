@@ -12,5 +12,9 @@ public class UnitCfg : ScriptableObject
     public int armor;
 
     [Header("Locomotion")]
-    public float moveSpeed;
+    public float moveSpeed = 2;
+
+    [Header("Combat")]
+    public bool attacksMultipleEnemies = false;
+    public float attackRange = 2;
 }

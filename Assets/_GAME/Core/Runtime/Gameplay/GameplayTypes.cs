@@ -20,6 +20,13 @@ public enum StatusEffect
     Paralyzed
 }
 
+public struct HitInfo
+{
+    public int damage;
+    public StatusEffect statusEffect;
+    public float statusEffectChance;
+}
+
 public interface IBoardUnit
 {
     int GetHealth();
@@ -27,6 +34,8 @@ public interface IBoardUnit
     StatusEffect GetStatus();
     void OnSpawned();
     void OnKilled();
+    void OnHit(HitInfo hitInfo);
+    void OnBoardUnitUpdate();
 }
 
 #region Enemies
@@ -121,6 +130,14 @@ public class PartySpawnTracker
 #endregion
 
 #region GameState
+
+public enum GameWinStatus
+{
+    NoResult = 0,
+    Win = 1,
+    Lose = 2
+}
+
 public interface IGameState
 {
     void OnStateEnter(IGameState lastState);

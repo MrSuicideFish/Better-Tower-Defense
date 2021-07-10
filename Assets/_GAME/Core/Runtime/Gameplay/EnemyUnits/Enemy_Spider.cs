@@ -1,13 +1,20 @@
+using System.Collections;
 using UnityEngine;
 
 public class Enemy_Spider : Unit
 {
-    public override void OnSpawned()
+    protected override void MoveTo(Vector3 position)
     {
-        // spwan spider effect instead
-        
-        
-        // this is where it finallay calls the parent class' function
-        //base.OnSpawned();
+        GetAnimator().SetBool("Move Forward Fast", true);
+        GetAnimator().SetBool("Move Forward Slow", false);
+        base.MoveTo(position);
+    }
+
+    protected override void Attack(IBoardUnit boardUnit)
+    {
+        Stop();
+        GetAnimator().SetBool("Move Forward Fast", false);
+        GetAnimator().SetBool("Move Forward Slow", false);
+        base.Attack(boardUnit);
     }
 }

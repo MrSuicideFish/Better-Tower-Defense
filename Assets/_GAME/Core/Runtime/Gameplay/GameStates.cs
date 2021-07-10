@@ -74,6 +74,7 @@ public class GameState_Wave : IGameState
     public void OnStateExit(IGameState nextState)
     {
         _spawnQueue?.Clear();
+        UnitManager.Get().ClearAllUnits();
     }
 
     public void OnStateUpdate(float timeInState, float deltaTime)
@@ -148,6 +149,14 @@ public class GameState_PostGame : IGameState
 {
     public void OnStateEnter(IGameState lastState)
     {
+        if (GameManager.Instance.winStatus == GameWinStatus.Win)
+        {
+            // do game win
+        }
+        else
+        {
+            // do game loss
+        }
     }
 
     public void OnStateExit(IGameState nextState)

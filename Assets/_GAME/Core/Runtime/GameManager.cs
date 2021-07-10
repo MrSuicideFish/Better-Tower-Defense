@@ -21,8 +21,11 @@ public class GameManager : MonoBehaviour
     public UnitSpawner spawnPoint { get; private set; }
     public Nexus nexus { get; private set; }
     public GameState currentGameState  { get; private set; }
+    public GameWinStatus winStatus { get; private set; } = 0;
     public int currentWave { get; private set; }
     public bool isPaused { get; private set; }
+    
+    public bool GameHasStarted { get; private set; }
 
     public delegate void GameStateDelegate(GameState state);
     public static event GameStateDelegate OnGameStateChanged;
@@ -60,6 +63,8 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         currentWave = 1;
+        nexus.OnSpawned();
+        GameHasStarted = true;
         GoToState(GameState.PreWave);
     }
 
@@ -86,8 +91,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void EndGame(bool forceWin)
+    public void EndGame(bool isWin)
     {
+        Debug.Log("Game Over! Win? " + isWin);
+        winStatus = isWin ? GameWinStatus.Win : GameWinStatus.Lose;
         GoToState(GameState.PostGame);
     }
     
@@ -111,7 +118,10 @@ public class GameManager : MonoBehaviour
             PauseGame(!isPaused);
         }
 
-        TickStateMachine();
+        if (GameHasStarted)
+        {
+            TickStateMachine();
+        }
     }
 
     private void OnGUI()
@@ -210,6 +220,8 @@ public class GameManager : MonoBehaviour
         {
             _gameState_current.OnStateUpdate(_timeInState, Time.deltaTime);
         }
+        
+        nexus.OnBoardUnitUpdate();
     }
     #endregion
 }

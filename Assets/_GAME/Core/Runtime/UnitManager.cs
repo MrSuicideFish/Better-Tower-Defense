@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class UnitManager : MonoBehaviour
 {
     private const int MAX_SPAWNED_UNITS = 250;
-        
+
+    private static int _unitUpdateIdx;
     private static UnitManager _manager;
 
     private Unit[] _spawnedUnits = new Unit[MAX_SPAWNED_UNITS];
@@ -18,13 +21,19 @@ public class UnitManager : MonoBehaviour
         }
         return _manager;
     }
-
-    private void Update()
+        
+    public bool TrySpawnUnit(string unitId)
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        UnitCfg cfg = string.IsNullOrEmpty(unitId)
+            ? UnitCfgDb.GetRandomCfg()
+            : UnitCfgDb.GetUnitCfgById(unitId);
+
+        if (cfg != null)
         {
-            TrySpawnUnit(EnemyUnit.Spiderling, EnemyLevel.Level_1);
+            return TrySpawnUnit(cfg.unitType, cfg.unitLevel);
         }
+
+        return false;
     }
 
     public bool TrySpawnUnit(EnemyUnit unit, EnemyLevel level)
@@ -34,12 +43,13 @@ public class UnitManager : MonoBehaviour
         
         bool unitPopulationFull = true;
         int unitSlot = -1;
-        for (int i = 0; i < _spawnedUnits.Length; i++)
+        for (int i = 0; i < MAX_SPAWNED_UNITS; i++)
         {
             if (_spawnedUnits[i] == null)
             {
                 unitPopulationFull = false;
                 unitSlot = i;
+                break;
             }
         }
 
@@ -50,42 +60,58 @@ public class UnitManager : MonoBehaviour
             {
                 Unit newUnit = GameManager.Instance.spawnPoint.SpawnUnit(cfg);
                 _spawnedUnits[unitSlot] = newUnit;
+                
+                newUnit.SetCfg(cfg);
+                newUnit.OnSpawned();
+                
                 return true;
             }
         }
+
+        Debug.LogWarning("Failed to spawn!");
         return false;
     }
     
-    public bool TrySpawnUnit(string unitId)
+    public void KillUnit(Unit unit)
     {
-        if (GameManager.Instance == null) return false;
-        if (GameManager.Instance.spawnPoint == null || GameManager.Instance.nexus == null) return false;
-
-        bool unitPopulationFull = true;
-        int unitSlot = -1;
-        for (int i = 0; i < _spawnedUnits.Length; i++)
+        if (_spawnedUnits == null) return;
+        for (int i = 0; i < MAX_SPAWNED_UNITS; i++)
         {
-            if (_spawnedUnits[i] == null)
+            if (_spawnedUnits[i] == unit)
             {
-                unitPopulationFull = false;
-                unitSlot = i;
+                unit.OnKilled();
+                _spawnedUnits[i] = null;
+                break;
             }
         }
+    }
 
-        if (!unitPopulationFull)
+    public void ClearAllUnits()
+    {
+        if (_spawnedUnits == null) return;
+        for (int i = 0; i < MAX_SPAWNED_UNITS; i++)
         {
-            UnitCfg cfg = string.IsNullOrEmpty(unitId)
-                ? UnitCfgDb.GetRandomCfg()
-                : UnitCfgDb.GetUnitCfgById(unitId);
-
-            if (cfg != null)
+            if (_spawnedUnits[i] != null)
             {
-                Unit newUnit = GameManager.Instance.spawnPoint.SpawnUnit(cfg);
-                _spawnedUnits[unitSlot] = newUnit;
-                return true;
+                GameObject.Destroy(_spawnedUnits[i].gameObject);
+                _spawnedUnits[i] = null;
             }
         }
+    }
 
-        return false;
+    private void Update()
+    {
+        if (_unitUpdateIdx >= 0 && _unitUpdateIdx < MAX_SPAWNED_UNITS)
+        {
+            if (_spawnedUnits[_unitUpdateIdx] != null)
+            {
+                _spawnedUnits[_unitUpdateIdx].OnBoardUnitUpdate();
+            }
+        }else
+        {
+            _unitUpdateIdx = 0;
+        }
+
+        _unitUpdateIdx++;
     }
 }
