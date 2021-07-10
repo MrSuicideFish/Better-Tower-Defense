@@ -14,14 +14,18 @@ public class ConstructionManager : MonoBehaviour
         }
         return _instance;
     }
+    
+    public static bool ConstructionModeEnabled { get; private set; }
 
     public static void BeginConstructionMode()
     {
         GameGridManager.Instance.gameObject.SetActive(true);
+        ConstructionModeEnabled = true;
     }
 
     public static void EndConstructionMode()
     {
         GameGridManager.Instance.gameObject.SetActive(false);
+        ConstructionModeEnabled = false;
     }
 }

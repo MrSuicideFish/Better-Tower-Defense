@@ -48,6 +48,29 @@ public class GridRenderer : MonoBehaviour
         Rebuild();
     }
 
+    private void Update()
+    {
+        Vector4 mouseCoordPosition = new Vector4();
+        if (GameManager.Instance.currentGameState == GameState.PreWave)
+        {
+            var mouseScreenPos = Input.mousePosition;
+            Ray mouseRay = Camera.main.ScreenPointToRay(mouseScreenPos);
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            float enter = 0;
+            if (groundPlane.Raycast(mouseRay, out enter))
+            {
+                Vector3 point = mouseRay.GetPoint(enter);
+                int coordX = (int) (Mathf.RoundToInt(point.x / _grid.gridSpaceSize) * _grid.gridSpaceSize);
+                int coordy = (int) (Mathf.RoundToInt(point.z / _grid.gridSpaceSize) * _grid.gridSpaceSize);
+                
+                mouseCoordPosition = new Vector4(coordX, 0, coordy, 0);
+            }
+        }
+
+        _material.SetFloat("_gridSize", _grid.gridSpaceSize);
+        _material.SetVector("_mouseCoordPosition", mouseCoordPosition);
+    }
+
     public void Rebuild()
     {
         if (!_meshFilter) return;

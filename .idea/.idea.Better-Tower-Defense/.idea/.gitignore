@@ -1,0 +1,13 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/projectSettingsUpdater.xml
+/contentModel.xml
+/modules.xml
+/.idea.Better-Tower-Defense.iml
+# Datasource local storage ignored files
+/../../../../../../:\BrokenPixel\Better-Tower-Defense\.idea\.idea.Better-Tower-Defense\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/

@@ -29,6 +29,12 @@ public class GameManager : MonoBehaviour
 
     public string levelName;
     public WaveInfo[] waves;
+    public WaveInfo GetCurrentWaveInfo()
+    {
+        int waveIdx = currentWave - 1;
+        if (waveIdx < 0 || waveIdx >= waves.Length) return null;
+        return waves[waveIdx];
+    }
     
     private IGameState _gameState_current = null;
     private IGameState _gameState_preGame = new GameState_PreGame();
@@ -57,6 +63,12 @@ public class GameManager : MonoBehaviour
         GoToState(GameState.PreWave);
     }
 
+    public void PrepareNextWave()
+    {
+        currentWave++;
+        GoToState(GameState.PreWave);
+    }
+
     public void StartWave()
     {
         GoToState(GameState.Wave);
@@ -64,7 +76,7 @@ public class GameManager : MonoBehaviour
 
     public void EndWave()
     {
-        if (currentWave + 1 < waves.Length)
+        if (currentWave < waves.Length)
         {
             GoToState(GameState.PostWave);
         }
@@ -98,11 +110,8 @@ public class GameManager : MonoBehaviour
         {
             PauseGame(!isPaused);
         }
-        
-        if (_gameState_current != null)
-        {
-            _gameState_current.OnStateUpdate();
-        }
+
+        TickStateMachine();
     }
 
     private void OnGUI()
@@ -113,7 +122,7 @@ public class GameManager : MonoBehaviour
         GUIStyle btnStyle = new GUIStyle(GUI.skin.button);
         btnStyle.fontSize = 50;
 
-        GUI.Label(new Rect(0, 0, 300, 100), currentGameState.ToString(), labelStyle);
+        GUI.Label(new Rect(0, 0, 600, 100), $"{currentGameState.ToString()} (Wave: {currentWave})", labelStyle);
         switch (currentGameState)
         {
             case GameState.PreGame:
@@ -137,7 +146,7 @@ public class GameManager : MonoBehaviour
             case GameState.PostWave:
                 if (GUI.Button(new Rect(0,110, 300, 100), "Next Wave", btnStyle))
                 {
-                    StartWave();
+                    PrepareNextWave();
                 }
                 break;
         }
@@ -148,10 +157,11 @@ public class GameManager : MonoBehaviour
             {
                 EndGame(false);
             }
-        }
+        } 
     }
 
     #region Game State Machine
+    private float _timeInState = 0f;
     private void GoToState(GameState newState, bool force = false)
     {
         if (currentGameState == newState && !force) return;
@@ -190,6 +200,16 @@ public class GameManager : MonoBehaviour
         currentGameState = newState;
         
         OnGameStateChanged?.Invoke(newState);
+        _timeInState = 0f;
+    }
+
+    private void TickStateMachine()
+    {
+        _timeInState += Time.deltaTime;
+        if (_gameState_current != null)
+        {
+            _gameState_current.OnStateUpdate(_timeInState, Time.deltaTime);
+        }
     }
     #endregion
 }
